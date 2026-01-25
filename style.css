@@ -24,13 +24,13 @@ body {
 }
 
 .tree-header {
-    background: linear-gradient(135deg, #4a148c 0%, #512da8 100%);
+    background: #2d0d52;
     color: white;
-    padding: 1.5rem;
+    padding: 3rem 1.5rem;
     font-size: 1.5rem;
     font-weight: bold;
     text-align: center;
-    border-bottom: 2px solid #3a0d6e;
+    border-bottom: 2px solid #1a0531;
 }
 
 .tree-placeholder {
@@ -83,20 +83,22 @@ body {
 
 .block.syntax {
     background: #5e35b1;
-    color: white;
+    color: #e1bee7;
 }
 
 .block.syntax:hover {
     background: #4527a0;
+    color: #f3e5f5;
 }
 
 .block.morphology {
     background: #1a237e;
-    color: white;
+    color: #bbdefb;
 }
 
 .block.morphology:hover {
     background: #0d1b5e;
+    color: #e3f2fd;
 }
 
 .block.custom-syntax {
