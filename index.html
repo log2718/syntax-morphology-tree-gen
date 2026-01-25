@@ -11,7 +11,18 @@
   <div class="tree-area">
     <div class="tree-container">
       <div class="tree-header">Tree Creator</div>
-      <div class="tree-placeholder">[ Tree Diagram Area ]</div>
+      <div class="toolbar">
+        <button id="add-descendent-btn" class="toolbar-btn">Add Descendent</button>
+        <button id="delete-btn" class="toolbar-btn">Delete</button>
+        <button id="auto-layout-btn" class="toolbar-btn">Auto-Layout</button>
+        <button id="clear-btn" class="toolbar-btn">Clear</button>
+        <button id="export-btn" class="toolbar-btn">Export</button>
+        <button id="import-btn" class="toolbar-btn">Import</button>
+      </div>
+      <div class="canvas-wrapper">
+        <svg id="edges-svg" class="edges-svg"></svg>
+        <div id="canvas" class="canvas"></div>
+      </div>
     </div>
   </div>
 
@@ -49,5 +60,7 @@
       </div>
     </div>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
