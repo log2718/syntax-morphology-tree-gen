@@ -141,6 +141,11 @@ class TreeApp {
     }
 
     setupEventListeners() {
+        // Make sidebar blocks draggable
+        document.querySelectorAll('.block').forEach(block => {
+            block.draggable = true;
+        });
+
         // Sidebar drag
         document.addEventListener('dragstart', (e) => this.onBlockDragStart(e));
         document.addEventListener('dragend', (e) => this.onBlockDragEnd(e));
