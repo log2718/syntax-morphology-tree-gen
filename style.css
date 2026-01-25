@@ -1,16 +1,17 @@
 :root {
     /* Primary Colors */
-    --color-header-purple: #2d0d52;
+    --color-header-purple-bg: #f6f2fb;
+    --color-header-purple: #3a2a5e;
     --color-dark-purple: #5e35b1;
     --color-dark-blue: #1a237e;
-    --color-light-purple: #e1bee7;
-    --color-light-blue: #bbdefb;
+    --color-light-purple: #f9e2fd;
+    --color-light-blue: #cbe4f9;
 
     /* Hover States */
     --color-dark-purple-hover: #4527a0;
     --color-dark-blue-hover: #0d1b5e;
-    --color-light-purple-hover: #f3e5f5;
-    --color-light-blue-hover: #e3f2fd;
+    --color-light-purple-hover: #f8f2f9;
+    --color-light-blue-hover: #e4f1fa;
 }
 
 body {
@@ -39,13 +40,13 @@ body {
 }
 
 .tree-header {
-    background: var(--color-header-purple);
-    color: white;
+    background: var(--color-header-purple-bg);
+    color: var(--color-header-purple);
     padding: 3rem 1.5rem;
     font-size: 1.5rem;
     font-weight: bold;
     text-align: center;
-    border-bottom: 2px solid #1a0531;
+    border-bottom: 2px solid #d6cbe8;
 }
 
 .tree-placeholder {
@@ -79,9 +80,9 @@ body {
 .block-section h2 {
     font-size: 1rem;
     margin: 0;
-    padding: 0.5rem 0.5rem 0;
+    padding: 0.5rem 0.5rem 0.25rem;
     color: #333;
-    border-bottom: 2px solid #ccc;
+    border-bottom: 1px solid #ddd;
     flex-shrink: 0;
 }
 
@@ -146,4 +147,5 @@ h2 {
     gap: 0.5rem;
     flex: 1;
     align-content: flex-start;
+    margin-top: 0.5rem;
 }
