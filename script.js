@@ -8,14 +8,15 @@ class TreeModel {
         this.nextEdgeId = 1;
     }
 
-    createNode(label, x, y) {
+    createNode(label, x, y, type = 'CAT') {
         const node = {
             id: `node-${this.nextNodeId++}`,
             label: label || 'Label',
             x: x,
             y: y,
             width: 100,
-            height: 40
+            height: 40,
+            type
         };
         this.nodes.push(node);
         return node;
@@ -132,10 +133,14 @@ class TreeApp {
         this.clearBtn = document.getElementById('clear-btn');
         this.exportBtn = document.getElementById('export-btn');
         this.importBtn = document.getElementById('import-btn');
+        this.resetBtn = document.getElementById('reset-btn');
 
         this.draggedNode = null;
-        this.dragOffsetX = 0;
-        this.dragOffsetY = 0;
+        this.draggedElement = null;
+        this.dragInitialX = 0;
+        this.dragInitialY = 0;
+        this.dragNodeStartX = 0;
+        this.dragNodeStartY = 0;
 
         this.setupEventListeners();
     }
@@ -145,6 +150,9 @@ class TreeApp {
         document.querySelectorAll('.block').forEach(block => {
             block.draggable = true;
         });
+
+        // Custom block handling
+        document.addEventListener('click', (e) => this.onCustomBlockClick(e));
 
         // Sidebar drag
         document.addEventListener('dragstart', (e) => this.onBlockDragStart(e));
@@ -161,9 +169,9 @@ class TreeApp {
         this.svg.addEventListener('click', (e) => this.onSVGClick(e));
 
         // Node interactions
-        document.addEventListener('mousedown', (e) => this.onNodeMouseDown(e));
-        document.addEventListener('mousemove', (e) => this.onNodeMouseMove(e));
-        document.addEventListener('mouseup', (e) => this.onNodeMouseUp(e));
+        document.addEventListener('pointerdown', (e) => this.onNodePointerDown(e));
+        document.addEventListener('pointermove', (e) => this.onNodePointerMove(e));
+        document.addEventListener('pointerup', (e) => this.onNodePointerUp(e));
 
         // Keyboard
         document.addEventListener('keydown', (e) => this.onKeyDown(e));
@@ -176,8 +184,37 @@ class TreeApp {
         this.exportBtn.addEventListener('click', () => this.onExportClick());
         this.importBtn.addEventListener('click', () => this.onImportClick());
 
+        // Sidebar reset button
+        this.resetBtn.addEventListener('click', () => this.onResetClick());
+
         // Double-click node to edit label
         document.addEventListener('dblclick', (e) => this.onNodeDoubleClick(e));
+    }
+
+    // CUSTOM BLOCK HANDLING
+
+    onCustomBlockClick(e) {
+        const customBlock = e.target.closest('.block.custom-syntax, .block.custom-morphology');
+        if (!customBlock) return;
+
+        e.preventDefault();
+
+        const newLabel = prompt('Enter custom label:', 'Custom');
+        if (!newLabel || !newLabel.trim()) return;
+
+        const label = newLabel.trim();
+        const isCustomSyntax = customBlock.classList.contains('custom-syntax');
+        const blockList = customBlock.closest('.block-list');
+
+        // Create new custom block with the given label
+        const newBlock = document.createElement('div');
+        newBlock.className = `block ${isCustomSyntax ? 'custom-syntax' : 'custom-morphology'}`;
+        newBlock.textContent = label;
+        newBlock.draggable = true;
+        newBlock.classList.add('user-custom');
+
+        // Insert before the "custom" block
+        blockList.insertBefore(newBlock, customBlock);
     }
 
     // DRAG-DROP FROM SIDEBAR
@@ -185,8 +222,10 @@ class TreeApp {
     onBlockDragStart(e) {
         if (!e.target.classList.contains('block')) return;
         const label = e.target.textContent.trim();
+        const type = e.target.classList.contains('word-block') ? 'WORD' : 'CAT';
         e.dataTransfer.effectAllowed = 'copy';
         e.dataTransfer.setData('text/label', label);
+        e.dataTransfer.setData('text/type', type);
     }
 
     onBlockDragEnd(e) {
@@ -200,14 +239,22 @@ class TreeApp {
 
     onCanvasDrop(e) {
         e.preventDefault();
-        const label = e.dataTransfer.getData('text/label');
+        let label = e.dataTransfer.getData('text/label');
+        const type = e.dataTransfer.getData('text/type') || 'CAT';
+
+        if (type === 'WORD') {
+            const word = prompt('Enter word/token:', label || '');
+            if (!word || !word.trim()) return;
+            label = word.trim();
+        }
+
         if (!label) return;
 
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        const node = this.model.createNode(label, x, y);
+        const node = this.model.createNode(label, x, y, type);
         this.render();
     }
 
@@ -231,7 +278,7 @@ class TreeApp {
         }
     }
 
-    onNodeMouseDown(e) {
+    onNodePointerDown(e) {
         const nodeEl = e.target.closest('.node');
         if (!nodeEl) return;
 
@@ -249,31 +296,59 @@ class TreeApp {
         this.updateUI();
         this.render();
 
-        // Prepare drag
+        // Prepare drag with pointer capture
         this.draggedNode = nodeId;
+        this.draggedElement = nodeEl;
+
+        // Store initial pointer position relative to canvas
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const canvasWrapper = this.canvas.parentElement;
+        const nodeRect = nodeEl.getBoundingClientRect();
+
+        // Account for canvas scroll position
+        this.dragInitialX = e.clientX - canvasRect.left + canvasWrapper.scrollLeft;
+        this.dragInitialY = e.clientY - canvasRect.top + canvasWrapper.scrollTop;
+
         const node = this.model.nodes.find(n => n.id === nodeId);
-        const rect = nodeEl.getBoundingClientRect();
-        this.dragOffsetX = e.clientX - rect.left;
-        this.dragOffsetY = e.clientY - rect.top;
+        this.dragNodeStartX = node.x;
+        this.dragNodeStartY = node.y;
+
+        // Capture pointer to this element
+        nodeEl.setPointerCapture(e.pointerId);
     }
 
-    onNodeMouseMove(e) {
-        if (!this.draggedNode) return;
+    onNodePointerMove(e) {
+        if (!this.draggedNode || !this.draggedElement) return;
 
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left - this.dragOffsetX;
-        const y = e.clientY - rect.top - this.dragOffsetY;
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const canvasWrapper = this.canvas.parentElement;
+
+        // Current pointer position relative to canvas (accounting for scroll)
+        const currentX = e.clientX - canvasRect.left + canvasWrapper.scrollLeft;
+        const currentY = e.clientY - canvasRect.top + canvasWrapper.scrollTop;
+
+        // Calculate delta from initial position
+        const deltaX = currentX - this.dragInitialX;
+        const deltaY = currentY - this.dragInitialY;
+
+        // Calculate new position
+        const x = Math.max(0, this.dragNodeStartX + deltaX);
+        const y = Math.max(0, this.dragNodeStartY + deltaY);
 
         const node = this.model.nodes.find(n => n.id === this.draggedNode);
         if (node) {
-            node.x = Math.max(0, x);
-            node.y = Math.max(0, y);
+            node.x = x;
+            node.y = y;
             this.render();
         }
     }
 
-    onNodeMouseUp(e) {
+    onNodePointerUp(e) {
+        if (this.draggedElement) {
+            this.draggedElement.releasePointerCapture(e.pointerId);
+        }
         this.draggedNode = null;
+        this.draggedElement = null;
     }
 
     onNodeDoubleClick(e) {
@@ -343,6 +418,11 @@ class TreeApp {
 
     // DELETE FUNCTIONALITY
 
+    onResetClick() {
+        // Remove only dynamically created custom blocks
+        const customBlocks = document.querySelectorAll('.block.user-custom');
+        customBlocks.forEach(block => block.remove());
+    }
 
     onDeleteClick() {
         if (this.ui.selectedNode) {
@@ -473,24 +553,14 @@ class TreeApp {
     }
 
     nodeToBracketNotation(node) {
-        const children = this.model.getChildrenOf(node.id);
-        const sortedChildren = children.sort((a, b) => a.x - b.x);
-
-        if (sortedChildren.length === 0) {
-            // Leaf node: parse label for "Label leaftext"
-            const parts = node.label.split(/\s+/);
-            if (parts.length > 1) {
-                return `[${parts[0]} ${parts.slice(1).join(' ')}]`;
-            } else {
-                return `[${node.label}]`;
-            }
-        } else {
-            // Non-leaf: recursively convert children
-            const childNotations = sortedChildren
-                .map(child => this.nodeToBracketNotation(child))
-                .join(' ');
-            return `[${node.label} ${childNotations}]`;
+        if (node.type === 'WORD') {
+            return node.label;
         }
+
+        const children = this.model.getChildrenOf(node.id).sort((a, b) => a.x - b.x);
+        const childNotations = children.map(child => this.nodeToBracketNotation(child)).filter(Boolean);
+        const inside = childNotations.join(' ');
+        return inside ? `[${node.label} ${inside}]` : `[${node.label}]`;
     }
 
     onImportClick() {
@@ -520,7 +590,7 @@ class TreeApp {
     }
 
     buildTreeFromStructure(structure, parentId, depth) {
-        const node = this.model.createNode(structure.label, 100 + depth * 50, 50 + depth * 100);
+        const node = this.model.createNode(structure.label, 100 + depth * 50, 50 + depth * 100, 'CAT');
 
         if (parentId) {
             this.model.createEdge(parentId, node.id);
@@ -530,9 +600,12 @@ class TreeApp {
             structure.children.forEach(child => {
                 this.buildTreeFromStructure(child, node.id, depth + 1);
             });
-        } else if (structure.leafText && structure.leafText.length > 0) {
-            // Store leaf text in label
-            node.label = `${structure.label} ${structure.leafText.join(' ')}`;
+        }
+
+        if (structure.leafText && structure.leafText.length > 0) {
+            const wordLabel = structure.leafText.join(' ');
+            const wordNode = this.model.createNode(wordLabel, 100 + (depth + 1) * 50, 50 + (depth + 1) * 100, 'WORD');
+            this.model.createEdge(node.id, wordNode.id);
         }
 
         return node;
@@ -574,6 +647,10 @@ class TreeApp {
         div.style.top = node.y + 'px';
         div.style.width = node.width + 'px';
         div.style.minHeight = node.height + 'px';
+
+        if (node.type === 'WORD') {
+            div.classList.add('word');
+        }
 
         if (this.ui.selectedNode === node.id) {
             div.classList.add('selected');
