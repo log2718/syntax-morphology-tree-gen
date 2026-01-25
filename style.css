@@ -1,3 +1,18 @@
+:root {
+    /* Primary Colors */
+    --color-header-purple: #2d0d52;
+    --color-dark-purple: #5e35b1;
+    --color-dark-blue: #1a237e;
+    --color-light-purple: #e1bee7;
+    --color-light-blue: #bbdefb;
+
+    /* Hover States */
+    --color-dark-purple-hover: #4527a0;
+    --color-dark-blue-hover: #0d1b5e;
+    --color-light-purple-hover: #f3e5f5;
+    --color-light-blue-hover: #e3f2fd;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -24,7 +39,7 @@ body {
 }
 
 .tree-header {
-    background: #2d0d52;
+    background: var(--color-header-purple);
     color: white;
     padding: 3rem 1.5rem;
     font-size: 1.5rem;
@@ -82,41 +97,41 @@ body {
 }
 
 .block.syntax {
-    background: #5e35b1;
-    color: #e1bee7;
+    background: var(--color-dark-purple);
+    color: var(--color-light-purple);
 }
 
 .block.syntax:hover {
-    background: #4527a0;
-    color: #f3e5f5;
+    background: var(--color-dark-purple-hover);
+    color: var(--color-light-purple-hover);
 }
 
 .block.morphology {
-    background: #1a237e;
-    color: #bbdefb;
+    background: var(--color-dark-blue);
+    color: var(--color-light-blue);
 }
 
 .block.morphology:hover {
-    background: #0d1b5e;
-    color: #e3f2fd;
+    background: var(--color-dark-blue-hover);
+    color: var(--color-light-blue-hover);
 }
 
 .block.custom-syntax {
-    background: #e1bee7;
-    color: #5e35b1;
+    background: var(--color-light-purple);
+    color: var(--color-dark-purple);
 }
 
 .block.custom-syntax:hover {
-    background: #ce93d8;
+    background: var(--color-light-purple-hover);
 }
 
 .block.custom-morphology {
-    background: #bbdefb;
-    color: #1a237e;
+    background: var(--color-light-blue);
+    color: var(--color-dark-blue);
 }
 
 .block.custom-morphology:hover {
-    background: #90caf9;
+    background: var(--color-light-blue-hover);
 }
 
 h2 {
