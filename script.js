@@ -479,6 +479,8 @@ class TreeApp {
                 node.y = pos.y;
             }
         });
+
+        this.centerNodesInCanvas();
     }
 
     layoutSubtree(node, positions, depth, xOffset, yOffset) {
@@ -503,6 +505,32 @@ class TreeApp {
             // Center parent above children
             positions[node.id] = { x: xOffset, y: y };
         }
+    }
+
+    centerNodesInCanvas() {
+        if (this.model.nodes.length === 0) return;
+
+        const minX = Math.min(...this.model.nodes.map(n => n.x));
+        const minY = Math.min(...this.model.nodes.map(n => n.y));
+        const maxX = Math.max(...this.model.nodes.map(n => n.x + n.width));
+        const maxY = Math.max(...this.model.nodes.map(n => n.y + n.height));
+
+        const contentWidth = maxX - minX;
+        const contentHeight = maxY - minY;
+
+        const viewWidth = this.canvas.parentElement.clientWidth || this.canvas.clientWidth;
+        const viewHeight = this.canvas.parentElement.clientHeight || this.canvas.clientHeight;
+
+        const targetMinX = Math.max(0, (viewWidth - contentWidth) / 2);
+        const targetMinY = Math.max(0, (viewHeight - contentHeight) / 2);
+
+        const shiftX = targetMinX - minX;
+        const shiftY = targetMinY - minY;
+
+        this.model.nodes.forEach(node => {
+            node.x += shiftX;
+            node.y += shiftY;
+        });
     }
 
     // CLEAR
