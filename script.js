@@ -123,7 +123,7 @@ class TreeApp {
         this.ui = new UIState();
 
         // DOM elements
-        this.canvas = document.getElementById('canvas');
+        this.workspace = document.getElementById('workspace');
         this.svg = document.getElementById('edges-svg');
 
         // Buttons
@@ -158,12 +158,12 @@ class TreeApp {
         document.addEventListener('dragstart', (e) => this.onBlockDragStart(e));
         document.addEventListener('dragend', (e) => this.onBlockDragEnd(e));
 
-        // Canvas drop
-        this.canvas.addEventListener('dragover', (e) => this.onCanvasDragOver(e));
-        this.canvas.addEventListener('drop', (e) => this.onCanvasDrop(e));
+        // Workspace drop
+        this.workspace.addEventListener('dragover', (e) => this.onWorkspaceDragOver(e));
+        this.workspace.addEventListener('drop', (e) => this.onWorkspaceDrop(e));
 
-        // Canvas click
-        this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
+        // Workspace click
+        this.workspace.addEventListener('click', (e) => this.onWorkspaceClick(e));
 
         // SVG edge click
         this.svg.addEventListener('click', (e) => this.onSVGClick(e));
@@ -232,12 +232,12 @@ class TreeApp {
         // Cleanup if needed
     }
 
-    onCanvasDragOver(e) {
+    onWorkspaceDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
     }
 
-    onCanvasDrop(e) {
+    onWorkspaceDrop(e) {
         e.preventDefault();
         let label = e.dataTransfer.getData('text/label');
         const type = e.dataTransfer.getData('text/type') || 'CAT';
@@ -250,7 +250,7 @@ class TreeApp {
 
         if (!label) return;
 
-        const rect = this.canvas.getBoundingClientRect();
+        const rect = this.workspace.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
@@ -260,9 +260,9 @@ class TreeApp {
 
     // NODE SELECTION & INTERACTION
 
-    onCanvasClick(e) {
-        // Only clear selection if clicking on empty canvas
-        if (e.target === this.canvas) {
+    onWorkspaceClick(e) {
+        // Only clear selection if clicking on empty workspace
+        if (e.target === this.workspace) {
             this.ui.clearSelection();
             this.updateUI();
             this.render();
@@ -300,14 +300,14 @@ class TreeApp {
         this.draggedNode = nodeId;
         this.draggedElement = nodeEl;
 
-        // Store initial pointer position relative to canvas
-        const canvasRect = this.canvas.getBoundingClientRect();
-        const canvasWrapper = this.canvas.parentElement;
+        // Store initial pointer position relative to workspace
+        const workspaceRect = this.workspace.getBoundingClientRect();
+        const workspaceWrapper = this.workspace.parentElement;
         const nodeRect = nodeEl.getBoundingClientRect();
 
-        // Account for canvas scroll position
-        this.dragInitialX = e.clientX - canvasRect.left + canvasWrapper.scrollLeft;
-        this.dragInitialY = e.clientY - canvasRect.top + canvasWrapper.scrollTop;
+        // Account for workspace scroll position
+        this.dragInitialX = e.clientX - workspaceRect.left + workspaceWrapper.scrollLeft;
+        this.dragInitialY = e.clientY - workspaceRect.top + workspaceWrapper.scrollTop;
 
         const node = this.model.nodes.find(n => n.id === nodeId);
         this.dragNodeStartX = node.x;
@@ -320,12 +320,12 @@ class TreeApp {
     onNodePointerMove(e) {
         if (!this.draggedNode || !this.draggedElement) return;
 
-        const canvasRect = this.canvas.getBoundingClientRect();
-        const canvasWrapper = this.canvas.parentElement;
+        const workspaceRect = this.workspace.getBoundingClientRect();
+        const workspaceWrapper = this.workspace.parentElement;
 
-        // Current pointer position relative to canvas (accounting for scroll)
-        const currentX = e.clientX - canvasRect.left + canvasWrapper.scrollLeft;
-        const currentY = e.clientY - canvasRect.top + canvasWrapper.scrollTop;
+        // Current pointer position relative to workspace (accounting for scroll)
+        const currentX = e.clientX - workspaceRect.left + workspaceWrapper.scrollLeft;
+        const currentY = e.clientY - workspaceRect.top + workspaceWrapper.scrollTop;
 
         // Calculate delta from initial position
         const deltaX = currentX - this.dragInitialX;
@@ -467,7 +467,7 @@ class TreeApp {
 
         // Layout each tree
         roots.forEach((root, rootIdx) => {
-            const xOffset = 100 + rootIdx * (this.canvas.offsetWidth / (roots.length + 1));
+            const xOffset = 100 + rootIdx * (this.workspace.offsetWidth / (roots.length + 1));
             this.layoutSubtree(root, nodePositions, 0, xOffset, y);
         });
 
@@ -480,7 +480,7 @@ class TreeApp {
             }
         });
 
-        this.centerNodesInCanvas();
+        this.centerNodesInWorkspace();
     }
 
     layoutSubtree(node, positions, depth, xOffset, yOffset) {
@@ -507,7 +507,7 @@ class TreeApp {
         }
     }
 
-    centerNodesInCanvas() {
+    centerNodesInWorkspace() {
         if (this.model.nodes.length === 0) return;
 
         const minX = Math.min(...this.model.nodes.map(n => n.x));
@@ -518,8 +518,8 @@ class TreeApp {
         const contentWidth = maxX - minX;
         const contentHeight = maxY - minY;
 
-        const viewWidth = this.canvas.parentElement.clientWidth || this.canvas.clientWidth;
-        const viewHeight = this.canvas.parentElement.clientHeight || this.canvas.clientHeight;
+        const viewWidth = this.workspace.parentElement.clientWidth || this.workspace.clientWidth;
+        const viewHeight = this.workspace.parentElement.clientHeight || this.workspace.clientHeight;
 
         const targetMinX = Math.max(0, (viewWidth - contentWidth) / 2);
         const targetMinY = Math.max(0, (viewHeight - contentHeight) / 2);
@@ -651,8 +651,8 @@ class TreeApp {
     }
 
     render() {
-        // Clear canvas and SVG
-        this.canvas.innerHTML = '';
+        // Clear workspace and SVG
+        this.workspace.innerHTML = '';
         this.svg.innerHTML = '';
 
         // Draw edges first
@@ -689,7 +689,7 @@ class TreeApp {
         }
 
         div.draggable = true;
-        this.canvas.appendChild(div);
+        this.workspace.appendChild(div);
     }
 
     drawEdge(edge) {
