@@ -243,7 +243,7 @@ class TreeApp {
         const type = e.dataTransfer.getData('text/type') || 'CAT';
 
         if (type === 'WORD') {
-            const word = prompt('Enter word/token:', label || '');
+            const word = prompt('Enter word:', label || '');
             if (!word || !word.trim()) return;
             label = word.trim();
         }
